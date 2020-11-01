@@ -2,6 +2,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from drf_day3.models import Book
 from drf_day3.serializers import BookModelSerializer, BookDeModelSerializer, BookModelSerializerV2
+from rest_framework.generics import GenericAPIView
+from rest_framework import mixins
+from rest_framework import generics
+from rest_framework import viewsets
 
 
 # 写了get和post方法，这个得用到序列化器和反序列化器
@@ -191,7 +195,7 @@ class BookAPIViewV2(APIView):
             return Response({
                 "status": 200,
                 "message": '修改成功',
-                "result" : BookModelSerializerV2(book_objs, many=True).data,
+                "result": BookModelSerializerV2(book_objs, many=True).data,
             })
 
     def patch(self, request, *args, **kwargs):
@@ -236,24 +240,102 @@ class BookAPIViewV2(APIView):
                 try:
                     book_obj = Book.objects.get(book_name=book_name)
                     print(book_obj)
+                    book_objs.append(book_obj)
                 except Book.DoesNotExist:
-                    return Response({
-                        "status": 400,
-                        "message": '图书不存在'
-                    })
+                    continue
                 serializer = BookModelSerializerV2(data=request_data[i], instance=book_obj, partial=True)
                 serializer.is_valid(raise_exception=True)
 
                 # 经过序列化器对   全局钩子与局部钩子校验后  开始更新
                 serializer.save()
-                book_objs.append(book_obj)
+
             return Response({
                 "status": 200,
                 "message": '修改成功',
-                "result":BookModelSerializerV2(book_objs, many=True).data,
+                "result": BookModelSerializerV2(book_objs, many=True).data,
             })
 
         # 更新的时候需要对前端传递的数据进行安全校验
         # 更新的时候需要指定关键字参数data
         # TODO 如果是修改  需要自定关键字参数instance  指定你要修改的实例对象是哪一个
 
+
+# GenericAPIView继承APIView，两者是完全兼容的
+class BookGenericAPIView(GenericAPIView,
+                         mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                         mixins.DestroyModelMixin,
+                         mixins.CreateModelMixin,
+                         mixins.UpdateModelMixin):
+    queryset = Book.objects.filter(is_delete=False)
+    serializer_class = BookModelSerializerV2
+
+    lookup_field = 'pk'
+
+    def get(self, request, *args, **kwargs):
+
+        if 'pk' in kwargs:
+            return self.retrieve(request, *args, **kwargs)
+        else:
+            return self.list(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    # def get(self, request, *args, **kwargs):
+    #     # 获取book模型中所有数据
+    #     # book_list = Book.objects.filter(is_delete=False)
+    #     book_list = self.get_queryset()
+    #
+    #     # 获取序列化器
+    #     # serializer_data = BookModelSerializerV2(book_list,many=True).data
+    #     serializer = self.get_serializer(book_list, many=True).data
+    #
+    #     return Response({
+    #         'status': 200,
+    #         'message': '查询所有图书成功',
+    #         'result': serializer
+    #     })
+
+    # def get(self, request, *args, **kwargs):
+    #
+    #     # book_id = kwargs.get('pk')
+    #     # if book_id:
+    #     book_obj = self.get_object()
+    #     serializer = self.get_serializer(book_obj, many=False).data
+    #     return Response({
+    #         'status': 200,
+    #         'message': '查询单个图书成功',
+    #         'result': serializer
+    #     })
+
+
+class BookGenericAPIViewV3(generics.CreateAPIView,
+                           # generics.ListAPIView,
+                           generics.RetrieveAPIView,
+                           generics.DestroyAPIView,
+                           generics.UpdateAPIView):
+    lookup_field = 'pk'
+    queryset = Book.objects.filter(is_delete=False)
+    serializer_class = BookModelSerializerV2
+
+
+'''
+发起一个post请求，不想执行标准http操作，想完成登录操作
+允许开发者自定义方法函数
+'''
+
+
+class BookViewSetView(viewsets.ViewSet):
+    def user_login(self, request, *args, **kwargs):
+        # 可以在此完成登录的逻辑
+        request_data = request.data
+        print(request_data['user_name'])
+        print('登录成功')
+        return Response('登录成功')

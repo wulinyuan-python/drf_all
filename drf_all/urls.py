@@ -24,4 +24,5 @@ urlpatterns = [
     re_path(r'^media/(?P<path>.*)', serve, {"document_root": settings.MEDIA_ROOT}),
     path('drf_day2/', include("drf_day2.urls")),
     path('drf_day3/', include("drf_day3.urls")),
+    path('drf_day4/', include("drf_day4.urls")),
 ]

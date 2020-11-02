@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'drf_day1',
     'drf_day3',
     'drf_day4',
+    'drf_day5',
 ]
 
 MIDDLEWARE = [
@@ -122,7 +123,7 @@ STATIC_URL = '/static/'
 # 静态资源目录
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 MEDIA_URL = "media/"
-
+AUTH_USER_MODEL = "drf_day5.User5"
 # DRF的全局配置
 REST_FRAMEWORK = {
     # DRF渲染器默认配置
@@ -142,4 +143,29 @@ REST_FRAMEWORK = {
 
     # DRF配置的全局异常处理的方法
     'EXCEPTION_HANDLER': 'drf_day2.exceptions.exception_handler',
+
+
+
+    # DRF默认的权限认证类
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 默认的认证器
+        'rest_framework.authentication.SessionAuthentication',  # 基于session
+        'rest_framework.authentication.BasicAuthentication',  # Basic
+        # 'api.authentications.MyAuth',
+    ],
+    # DRF默认的权限配置
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+
+    # DRF频率配置
+    'DEFAULT_THROTTLE_CLASSES': [
+        # 'rest_framework.throttling.UserRateThrottle',
+        'api.throttle.SendMessageRate',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '3/m',
+        'user': '10/day',
+        'send': '1/m',
+    }
 }

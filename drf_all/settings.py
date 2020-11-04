@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'drf_day3',
     'drf_day4',
     'drf_day5',
+    'drf_day6',
 ]
 
 MIDDLEWARE = [
@@ -161,7 +162,7 @@ REST_FRAMEWORK = {
     # DRF频率配置
     'DEFAULT_THROTTLE_CLASSES': [
         # 'rest_framework.throttling.UserRateThrottle',
-        'api.throttle.SendMessageRate',
+        'drf_day5.throttle.SendMessageRate',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'anon': '3/m',
